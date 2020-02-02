@@ -145,31 +145,44 @@ def astar(init, goal, network):
 	closed = []
 	### YOUR CODE GOES BELOW HERE ###
 	### Node: (heuristic, {(x,y), parentNode})
-	curr = (distance(init, goal), {'node': init, 'parent': 0})
+	### Node: (heuristic, (x,y), parentNode)
+	curr = (distance(init, goal), init, 0)
 	open.append(curr)
 	heapq.heapify(open)
-	while not (curr[1]['node'] == goal) and len(open) > 0:
-		print('---')
-		print(open)
-		print('---')
+	while not (curr[1] == goal) and len(open) > 0:
 		curr = heapq.heappop(open)
-		closed.append(curr[1]['node'])
+		### reaches goal
+		if curr[1] == goal:
+			prev = curr[2]
+			while prev != 0:
+				path.append(curr[1])
+				curr = curr[2]
+				prev = curr[2]
+			path.reverse()
+			return path, closed
+		### pop visited nodes
+		while curr[1] in closed:
+			curr = heapq.heappop(open)
+		
+		closed.append(curr[1])
 		for pathLine in network:
 			n1, n2 = pathLine
-			n1, n2 = (n2, n1) if n2 == curr[1]['node'] else (n1, n2)
-			if n1 == curr[1]['node'] and n2 not in closed:
+			n1, n2 = (n2, n1) if n2 == curr[1] else (n1, n2)
+			if n1 == curr[1] and n2 not in closed:
 				g_n1 = curr[0] - distance(n1, goal) # gets n1's g()
 				h_n2 = distance(n2, goal) # straightline dist from n2 to goal
 				g_n2 = g_n1 + distance(n1, n2) # add this to n2's g()
-				heapq.heappush(open, (h_n2 + g_n2, {'node': n2, 'parent': curr}))
+				heapq.heappush(open, (h_n2 + g_n2, n2, curr))
 	### Reconstruct path if reached goal
-	if curr[1]['node'] == goal:
-		prev = curr[1]['parent']
+	if curr[1] == goal:
+		prev = curr[2]
 		while prev != 0:
-			path.append(curr[1]['node'])
-			curr = curr[1]['parent']
-			prev = curr[1]['parent']
+			path.append(curr[1])
+			curr = curr[2]
+			prev = curr[2]
 		path.reverse()
+	else:
+		path = []
 	### YOUR CODE GOES ABOVE HERE ###
 	return path, closed
 
