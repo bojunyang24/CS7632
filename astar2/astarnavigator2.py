@@ -104,6 +104,7 @@ def clearShot(p1, p2, worldLines, worldPoints, agent):
 	path = (p1, p2)
 	agentRadius = agent.getMaxRadius()
 	for line in worldLines:
+		assert len(line) == 2
 		if rayTrace(line[0], line[1], path) or minimumDistance(path, line[0]) <= agentRadius or minimumDistance(path, line[1]) <= agentRadius:
 			return False
 	return True
@@ -122,6 +123,7 @@ def getOnPathNetwork(location, pathnodes, worldLines, agent):
 	for node in pathnodes:
 		if clearShot(location, node, worldLines, worldLines, agent):
 			heapq.heappush(reachable, (distance(location, node), node))
+		heapq.heappush(reachable, (distance(location, node), node))
 	if len(reachable) > 0:
 		return reachable[0][1]
 	else:
@@ -189,7 +191,9 @@ def astar(init, goal, network):
 
 def myUpdate(nav, delta):
 	### YOUR CODE GOES BELOW HERE ###
-	
+	if nav.agent.speed == 0:
+		print('-------------------- F U C K --------------------')
+		myCheckpoint(nav)
 	### YOUR CODE GOES ABOVE HERE ###
 	return None
 
@@ -198,7 +202,15 @@ def myUpdate(nav, delta):
 
 def myCheckpoint(nav):
 	### YOUR CODE GOES BELOW HERE ###
-	
+	# if len(nav.path) == 0:
+	# 	return None
+	# gates = nav.world.getGates()
+	# path = [nav.agent.getLocation()] + nav.path
+	# for p in path:
+	# 	if not clearShot(p[0], p[1], gates, gates, nav.agent):
+	# 		newpath, _ = astar(nav.agent.getLocation(), nav.destination, unobstructedNetwork(nav.pathnetwork, nav.world.getGates(), nav.world))
+	# 		nav.path = newpath
+	# 		break
 	### YOUR CODE GOES ABOVE HERE ###
 	return None
 
