@@ -148,52 +148,55 @@ def astar(init, goal, network):
 	### YOUR CODE GOES BELOW HERE ###
 	### Node: (heuristic, {(x,y), parentNode})
 	### Node: (heuristic, (x,y), parentNode)
-	curr = (distance(init, goal), init, 0)
-	open.append(curr)
 	heapq.heapify(open)
-	while not (curr[1] == goal) and len(open) > 0:
+	curr = (distance(init, goal), init, init)
+	heapq.heappush(open, curr)
+	gs = {init: 0}
+	### curr[1] is the (x,y) of current node
+	while len(open) > 0 and curr[1] != goal:
 		curr = heapq.heappop(open)
-		### reaches goal
 		if curr[1] == goal:
 			prev = curr[2]
-			while prev != 0:
+			while prev != curr[1]:
 				path.append(curr[1])
-				curr = curr[2]
+				curr = prev
 				prev = curr[2]
 			path.reverse()
 			return path, closed
-		### pop visited nodes
-		while curr[1] in closed:
-			curr = heapq.heappop(open)
-		
-		closed.append(curr[1])
-		for pathLine in network:
-			n1, n2 = pathLine
-			n1, n2 = (n2, n1) if n2 == curr[1] else (n1, n2)
-			if n1 == curr[1] and n2 not in closed:
-				g_n1 = curr[0] - distance(n1, goal) # gets n1's g()
-				h_n2 = distance(n2, goal) # straightline dist from n2 to goal
-				g_n2 = g_n1 + distance(n1, n2) # add this to n2's g()
-				heapq.heappush(open, (h_n2 + g_n2, n2, curr))
-	### Reconstruct path if reached goal
+		if curr[1] not in closed:
+			closed.append(curr[1])
+		neighbors = getNeighbors(curr[1], network)
+		for neighbor in neighbors:
+			if neighbor not in closed:
+				neighbor_g = gs[curr[1]] + distance(curr[1], neighbor)
+				if neighbor not in gs or neighbor_g < gs[neighbor]:
+					gs[neighbor] = neighbor_g
+					f = neighbor_g + distance(neighbor, goal)
+					heapq.heappush(open, (f, neighbor, curr))
 	if curr[1] == goal:
 		prev = curr[2]
-		while prev != 0:
+		while prev != curr[1]:
 			path.append(curr[1])
-			curr = curr[2]
+			curr = prev
 			prev = curr[2]
 		path.reverse()
-	else:
-		path = []
-	### YOUR CODE GOES ABOVE HERE ###
 	return path, closed
+
+def getNeighbors(node, network):
+	neighbors = []
+	for path in network:
+		if path[0] == node or path[1] == node:
+			neighbors.append(path[1] if path[0] == node else path[0])
+			# n1, n2 = (path[1], path[0]) if path[1] == node else (path[0], path[1])
+	return neighbors
 
 
 def myUpdate(nav, delta):
 	### YOUR CODE GOES BELOW HERE ###
-	if nav.agent.speed == 0:
-		print('-------------------- F U C K --------------------')
-		myCheckpoint(nav)
+	print('myupdate')
+	# gates = nav.world.getGates()
+	# if not clearShot(nav.agent.position, nav.agent.moveTarget, gates, gates, nav.agent):
+	# 	nav.path, _ = astar(nav.agent.position, nav.destination, unobstructedNetwork(nav.pathnetwork, nav.world.getGates(), nav.world))
 	### YOUR CODE GOES ABOVE HERE ###
 	return None
 
@@ -202,15 +205,10 @@ def myUpdate(nav, delta):
 
 def myCheckpoint(nav):
 	### YOUR CODE GOES BELOW HERE ###
-	# if len(nav.path) == 0:
-	# 	return None
+	print('mycheckpoint')
 	# gates = nav.world.getGates()
-	# path = [nav.agent.getLocation()] + nav.path
-	# for p in path:
-	# 	if not clearShot(p[0], p[1], gates, gates, nav.agent):
-	# 		newpath, _ = astar(nav.agent.getLocation(), nav.destination, unobstructedNetwork(nav.pathnetwork, nav.world.getGates(), nav.world))
-	# 		nav.path = newpath
-	# 		break
+	# if not clearShot(nav.agent.position, nav.agent.moveTarget, gates, gates, nav.agent):
+	# 	nav.agent.stop()
 	### YOUR CODE GOES ABOVE HERE ###
 	return None
 
