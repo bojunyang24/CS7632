@@ -193,10 +193,18 @@ def getNeighbors(node, network):
 
 def myUpdate(nav, delta):
 	### YOUR CODE GOES BELOW HERE ###
-	print('myupdate')
-	# gates = nav.world.getGates()
-	# if not clearShot(nav.agent.position, nav.agent.moveTarget, gates, gates, nav.agent):
-	# 	nav.path, _ = astar(nav.agent.position, nav.destination, unobstructedNetwork(nav.pathnetwork, nav.world.getGates(), nav.world))
+	gates = nav.world.getGates()
+	if not clearShot(nav.agent.position, nav.agent.moveTarget, gates, gates, nav.agent):
+		print('myupdate')
+		# start = getOnPathNetwork(nav.agent.position, nav.pathnodes, nav.world.getLinesWithoutBorders(), nav.agent)
+		# end = getOnPathNetwork(nav.destination, nav.pathnodes, nav.world.getLinesWithoutBorders(), nav.agent)
+		# newnetwork = unobstructedNetwork(nav.pathnetwork, nav.world.getGates(),nav.world)
+		# nav.path = astar(start, end, newnetwork)
+		# if nav.path == None:
+		# 	print('stop')
+		nav.agent.stopMoving()
+		nav.path = None
+
 	### YOUR CODE GOES ABOVE HERE ###
 	return None
 
@@ -205,10 +213,17 @@ def myUpdate(nav, delta):
 
 def myCheckpoint(nav):
 	### YOUR CODE GOES BELOW HERE ###
-	print('mycheckpoint')
-	# gates = nav.world.getGates()
-	# if not clearShot(nav.agent.position, nav.agent.moveTarget, gates, gates, nav.agent):
-	# 	nav.agent.stop()
+	gates = nav.world.getGates()
+	if not clearShot(nav.agent.position, nav.agent.moveTarget, gates, gates, nav.agent):
+		# print('mycheckpoint')
+		# start = getOnPathNetwork(nav.agent.position, nav.pathnodes, nav.world.getLinesWithoutBorders(), nav.agent)
+		# end = getOnPathNetwork(nav.destination, nav.pathnodes, nav.world.getLinesWithoutBorders(), nav.agent)
+		# newnetwork = unobstructedNetwork(nav.pathnetwork, nav.world.getGates(),nav.world)
+		# nav.path = astar(start, end, newnetwork)
+		# if nav.path == None:
+		# 	print('stop')
+		nav.agent.stopMoving()
+		nav.path = None
 	### YOUR CODE GOES ABOVE HERE ###
 	return None
 
@@ -226,7 +241,15 @@ def myCheckpoint(nav):
 def shortcutPath(source, dest, path, world, agent):
 	path = copy.deepcopy(path)
 	### YOUR CODE GOES BELOW HERE ###
-	
+	if clearShot(source, dest, world.getLines(), world.getPoints(), agent):
+		return []
+	if len(path) > 1 and clearShot(source, path[1], world.getLines(), world.getPoints(), agent):
+		# path = path[1:]
+		path.pop(0)
+		if len(path) > 1 and clearShot(dest, path[-2], world.getLines(), world.getPoints(), agent):
+			# path = path[:-1]
+			path.pop(-1)
+	# for i in range(0,len(path)):
 	### YOUR CODE GOES BELOW HERE ###
 	return path
 
@@ -237,7 +260,15 @@ def shortcutPath(source, dest, path, world, agent):
 ### This function returns True if the moveTarget and/or path is modified and False otherwise
 def mySmooth(nav):
 	### YOUR CODE GOES BELOW HERE ###
-	
+	# print('mysmooth')
+	if clearShot(nav.agent.position, nav.getDestination(), nav.world.getLines(), nav.world.getPoints(), nav.agent):
+		nav.agent.moveToTarget(nav.getDestination())
+		nav.path = []
+		return True
+	# if nav.path != None and len(nav.path) > 1 and clearShot(nav.agent.position, nav.path[1], nav.world.getLines(), nav.world.getPoints(), nav.agent):
+	# 	nav.agent.moveToTarget(nav.path[1])
+	# 	nav.path = []
+	# 	return True
 	### YOUR CODE GOES ABOVE HERE ###
 	return False
 
