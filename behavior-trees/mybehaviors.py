@@ -33,7 +33,29 @@ def treeSpec(agent):
 	myid = str(agent.getTeam())
 	spec = None
 	### YOUR CODE GOES BELOW HERE ###
-
+	spec = [
+		(Selector, 'run or fight'),
+		(Retreat, 0.6, 'running to base'),
+		[
+			(HitpointDaemon, 0.3, 'am i still healthy enough'),
+			[
+				(Selector, 'minion or hero'),
+				[
+					(BuffDaemon, 2, 'need to be this powerful to attack hero'),
+					[
+						(Sequence, 'attack hero'),
+						(ChaseHero, 'chasing hero'),
+						(KillHero, 'killing hero')
+					]
+				],
+				[
+					(Sequence, 'attack minion'),
+					(ChaseMinion, 'chasing minion'),
+					(KillMinion, 'killing minion')
+				]
+			]
+		]
+	]
 	### YOUR CODE GOES ABOVE HERE ###
 	return spec
 
@@ -52,6 +74,47 @@ def myBuildTree(agent):
 def makeNode(type, agent, *args):
 	node = type(agent, args)
 	return node
+
+
+###########################
+### Enacapsulated Actions
+
+def react(agent):
+	enemies = agent.world.getEnemyNPCs(agent.getTeam())
+	target = None
+	if len(enemies) > 0:
+		target = min(enemies, key=lambda e: distance(e.getLocation(), agent.getLocation()))
+	bullets = agent.getVisibleType(Bullet)
+	avoid = []
+	for b in bullets:
+		if b.getOwner().getTeam() != agent.getTeam():
+			avoid.append(b)
+	closest = None
+	if len(avoid) > 0:
+		closest = min(avoid, key=lambda b: distance(b.getLocation(), agent.getLocation()) - agent.getRadius() - b.getRadius())
+		if closest is not None:
+			b_dist = distance(closest.getLocation(), agent.getLocation()) - agent.getRadius() - closest.getRadius()
+	if target is not None and distance(target.getLocation(), agent.getLocation()) < BIGBULLETRANGE:
+		# target within range
+		if agent.canAreaEffect() and distance(target.getLocation(), agent.getLocation()) < AREAEFFECTRANGE * agent.getRadius():
+			# if in aoe range
+			agent.areaEffect()
+		if agent.canDodge() and closest is not None and b_dist < 5:
+			agent.dodge(math.radians(closest.getOrientation()) + math.pi / 2) # dodge perpendicular to bullet line of travel
+		attack(agent, target)
+
+def attack(agent, target):
+	if agent is not None and target is not None:
+		agent.turnToFace(target.getLocation())
+		agent.shoot()
+
+def fakeDodge(agent):
+	x,y = agent.getLocation()
+	dx = random.randint(-2,2) * 10000
+	dy = random.randint(-2,2) * 10000
+	if rayTraceWorld(agent.getLocation(), (x+dx,y+dy), agent.world.getLines()):
+		agent.navigator.path = [(x+dx/10, y+dy/10)]
+		# agent.MoveToTarget(agent, (x+dx/10,y+dy/10))
 
 ###############################
 ### BEHAVIOR CLASSES:
@@ -113,6 +176,7 @@ class MoveToTarget(BTNode):
 
 	def execute(self, delta = 0):
 		ret = BTNode.execute(self, delta)
+		react(self.agent)
 		if self.target == None:
 			# failed executability conditions
 			print("exec", self.id, "false")
@@ -167,6 +231,7 @@ class Retreat(BTNode):
 			return True
 		else:
 			# executing
+			react(self.agent)
 			return None
 		return ret
 
@@ -229,6 +294,7 @@ class ChaseMinion(BTNode):
 				navTarget = self.chooseNavigationTarget()
 				if navTarget is not None:
 					self.agent.navigateTo(navTarget)
+			react(self.agent)
 			return None
 		return ret
 
@@ -259,7 +325,7 @@ class KillMinion(BTNode):
 
 	def enter(self):
 		BTNode.enter(self)
-		self.agent.stopMoving()
+		# self.agent.stopMoving()
 		enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
 		if len(enemies) > 0:
 			best = None
@@ -285,6 +351,7 @@ class KillMinion(BTNode):
 			return True
 		else:
 			# executing
+			fakeDodge(self.agent)
 			self.shootAtTarget()
 			return None
 		return ret
@@ -345,6 +412,7 @@ class ChaseHero(BTNode):
 				navTarget = self.chooseNavigationTarget()
 				if navTarget is not None:
 					self.agent.navigateTo(navTarget)
+			react(self.agent)
 			return None
 		return ret
 
@@ -375,7 +443,7 @@ class KillHero(BTNode):
 
 	def enter(self):
 		BTNode.enter(self)
-		self.agent.stopMoving()
+		# self.agent.stopMoving()
 		enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
 		for e in enemies:
 			if isinstance(e, Hero):
@@ -398,6 +466,7 @@ class KillHero(BTNode):
 			return True
 		else:
 			#executing
+			fakeDodge(self.agent)
 			self.shootAtTarget()
 			return None
 		return ret

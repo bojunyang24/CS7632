@@ -27,6 +27,18 @@ from core import *
 def myBuildPathNetwork(pathnodes, world, agent = None):
 	lines = []
 	### YOUR CODE GOES BELOW HERE ###
-
+	obstacleLines = world.getLines()
+	agentRadius = agent.getMaxRadius()
+	for i in range(len(pathnodes)):
+		for j in range(i, len(pathnodes)):
+			line = (pathnodes[i], pathnodes[j])
+			collision = False
+			for k in range(len(obstacleLines)):
+				if rayTrace(obstacleLines[k][0], obstacleLines[k][1], line):
+					collision = True
+				if minimumDistance(line, obstacleLines[k][0]) <= agentRadius or minimumDistance(line, obstacleLines[k][1]) <= agentRadius:
+					collision = True
+			if not collision:
+				lines.append(line)
 	### YOUR CODE GOES ABOVE HERE ###
 	return lines

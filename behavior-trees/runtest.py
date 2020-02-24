@@ -20,7 +20,7 @@
 from behaviortree import *
 
 
-tree = [(Sequence, 1), [(Sequence, 2), (TestNode, 20), (TestNode, 22)], [(Selector, 5), [(Sequence, 9), (TestNode, 11), (TestNode, 12)], (TestNode, 31), (DelayTestNode, 35, 3), TestNode]]
+tree = [(Sequence, 1), [(Sequence, 2), (TestNode, 20), (TestNode, 22)], [(Selector, 5), [(Sequence, 9), (TestNode, 11), (TestNode, 13)], (TestNode, 33), (DelayTestNode, 36, 3), TestNode]]
 
 #tree = [(Sequence, 1),[(Selector, 10), [(TestNode, 101), (DelayTestNode,103,4), (TestNode,102), (TestNode,104)],[(Sequence,20), (DelayTestNode, 202,2), (DelayTestNode,204,3), (DelayTestNode,201,1), (TestNode,206), (TestNode, 203), (TestNode,208)],[(Selector, 30), [(Sequence,300), (TestNode, 3001), (TestNode,3003)], [(Selector, 301), (TestNode, 3011), TestNode, (TestNode,3012)]] ]]
 

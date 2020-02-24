@@ -126,7 +126,21 @@ class Sequence(BTNode):
 	def execute(self, delta = 0):
 		BTNode.execute(self, delta)
 		### YOUR CODE GOES BELOW HERE ###
-
+		if self.getNumChildren() == 0:
+			return True
+		curr_child = self.getChild(self.current)
+		res = curr_child.execute()
+		if res == None:
+			return None
+		elif res == True:
+			self.current += 1
+			if self.current >= self.getNumChildren():
+				self.reset()
+				return True
+			return None
+		else:
+			self.reset()
+			return False
 		### YOUR CODE GOES ABOVE HERE ###
 		return True
 
@@ -145,7 +159,23 @@ class Selector(BTNode):
 	def execute(self, delta = 0):
 		BTNode.execute(self, delta)
 		### YOUR CODE GOES BELOW HERE ###
-
+		# if self.id == 5:
+		print('mydebug: ' + str(self.id))
+		if self.getNumChildren() == 0:
+			return False
+		curr_child = self.getChild(self.current)
+		res = curr_child.execute()
+		if res == None:
+			return None
+		elif res == False:
+			self.current += 1
+			if self.current >= self.getNumChildren():
+				self.reset()
+				return False
+			return None
+		else:
+			self.reset()
+			return True
 		### YOUR CODE GOES ABOVE HERE ###
 		return False
 
