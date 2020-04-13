@@ -17,7 +17,8 @@ import dk.itu.mario.engine.sprites.Enemy;
 
 public class MyLevelGenerator{
 
-	public boolean verbose = true; //print debugging info
+	public boolean verbose = false; //print debugging info
+	public boolean v = false; //print debugging info
 
 	// MAKE ANY NEW MEMBER VARIABLES HERE
 
@@ -34,8 +35,13 @@ public class MyLevelGenerator{
 		// Convert the solution to the GA into a Level
 		MyLevel level = new MyLevel(dna, LevelInterface.TYPE_OVERGROUND);
 
+		if (this.v) {
+			// System.out.println("Solution: " + dna + " fitness: " + playerProfile.evaluateLevel(level));
+			System.out.println("fitness: " + playerProfile.evaluateLevel(level));
+		}
 		if (this.verbose) {
-			System.out.println("Solution: " + dna + " fitness: " + playerProfile.evaluateLevel(level));
+			// System.out.println("Solution: " + dna + " fitness: " + playerProfile.evaluateLevel(level));
+			System.out.println("fitness: " + playerProfile.evaluateLevel(level));
 		}
 
 		return (Level)level;
@@ -134,6 +140,10 @@ public class MyLevelGenerator{
 			//increment counter
 			count = count + 1;
 
+			if (this.v) {
+				MyDNA best = this.getBestIndividual(population);
+				System.out.println("" + count + ": fitness: " + best.getFitness());
+			}
 			if (this.verbose) {
 				MyDNA best = this.getBestIndividual(population);
 				System.out.println("" + count + ": Best: " + best + " fitness: " + best.getFitness());
@@ -151,7 +161,40 @@ public class MyLevelGenerator{
 	{
 		MyDNA individual = new MyDNA();
 		// YOUR CODE GOES BELOW HERE
-
+		int numGenes = 10; //number of genes
+		char[] floor = {'a','b','c','d','e','f','g','h','i','j','z'};
+		int highl = 5;
+		char[] high = {'0','1','2','3','4'};
+		int stuffl = 3;
+		char[] stuff = {'0','5','6'};
+		String chromosome = "";
+		int i = 0;
+		char prev = 'a';
+		int gap = 0;
+		Random rand = new Random();
+		while (i < 205) {
+			int diff = rand.nextInt(3);
+			if (rand.nextInt(10) < 3 && gap < 3) {
+				chromosome += 'z' + "" + high[rand.nextInt(highl)] + stuff[rand.nextInt(stuffl)];
+				gap++;
+			} else {
+				gap = 0;
+				if (prev <= 'c') {
+					prev = (char) ((int) prev + diff);
+				} else if (prev >= 'h') {
+					prev = (char) ((int) prev - diff);
+				} else {
+					if (rand.nextInt(10) < 5) {
+						prev = (char) ((int) prev + diff);
+					} else {
+						prev = (char) ((int) prev - diff);
+					}
+				}
+				chromosome += prev + "" + high[rand.nextInt(highl)] + stuff[rand.nextInt(stuffl)];
+			}
+			i++;
+		}
+		individual.setChromosome(chromosome);
 		// YOUR CODE GOES ABOVE HERE
 		return individual;
 	}
@@ -161,7 +204,14 @@ public class MyLevelGenerator{
 	{
 		boolean decision = false;
 		// YOUR CODE GOES BELOW HERE
-
+		for (int i = 0; i < population.size(); i++) {
+			if (population.get(i).getFitness() >= 0.80) {
+				return true;
+			}
+		}
+		if (count > 250) {
+			return true;
+		}
 		// YOUR CODE GOES ABOVE HERE
 		return decision;
 	}
@@ -171,7 +221,12 @@ public class MyLevelGenerator{
 	{
 		ArrayList<MyDNA> selected = new ArrayList<MyDNA>();
 		// YOUR CODE GOES BELOW HERE
-
+		Random rand = new Random();
+		for (int i = 0; i < population.size(); i++) {
+			if (rand.nextInt(10) < 7) {
+				selected.add(population.get(i));
+			}
+		}
 		// YOUR CODE GOES ABOVE HERE
 		return selected;
 	}
@@ -181,7 +236,7 @@ public class MyLevelGenerator{
 	{
 		int num = 1; // Default needs to be changed
 		// YOUR CODE GOES BELOW HERE
-
+		num = 200;
 		// YOUR CODE GOES ABOVE HERE
 		return num;
 	}
@@ -191,7 +246,7 @@ public class MyLevelGenerator{
 	{
 		int num = 0; // Default is no crossovers
 		// YOUR CODE GOES BELOW HERE
-
+		num = getPopulationSize()/2;
 		// YOUR CODE GOES ABOVE HERE
 		return num;
 
@@ -201,8 +256,15 @@ public class MyLevelGenerator{
 	private MyDNA pickIndividualForCrossover (ArrayList<MyDNA> population, MyDNA excludeMe)
 	{
 		MyDNA picked = null;
+		Boolean selected = false;
 		// YOUR CODE GOES BELOW HERE
-
+		Random rand = new Random();
+		while (!selected) {
+			picked = population.get(rand.nextInt(population.size()));
+			if (picked != excludeMe) {
+				selected = true;
+			}
+		}
 		// YOUR CODE GOES ABOVE HERE
 		if (picked == excludeMe) {
 			return null;
@@ -218,7 +280,7 @@ public class MyLevelGenerator{
 	{
 		boolean doit = false;
 		// YOUR CODE GOES BELOW HERE
-
+		// doit = true;
 		// YOUR CODE GOES ABOVE HERE
 		return doit;
 	}
@@ -235,20 +297,42 @@ public class MyLevelGenerator{
 		}
 		return finalPopulation;
 	}
+	
+	Comparator<MyDNA> c = new Comparator<MyDNA>() {
+		public int compare(MyDNA a, MyDNA b) {
+			if (a.getFitness() == b.getFitness()) {
+				return 0;
+			}
+			else if (a.getFitness() > b.getFitness()) {
+				return -1;
+			}
+			else {
+				return 1;
+			}
+		}
+	};
 
 	// Combine the old population and the new population and return the top fittest individuals.
 	private ArrayList<MyDNA> globalCompetition (ArrayList<MyDNA> oldPopulation, ArrayList<MyDNA> newPopulation)
 	{
 		ArrayList<MyDNA> finalPopulation = new ArrayList<MyDNA>();
 		// YOUR CODE GOES BELOW HERE
-
+		oldPopulation.addAll(newPopulation);
+		// Collections.sort(oldPopulation);
+		oldPopulation.sort(this.c);
+		int i = 0;
+		while (finalPopulation.size() != this.getPopulationSize()) {
+			finalPopulation.add(oldPopulation.get(i));
+			i++;
+		}
 		// YOUR CODE GOES ABOVE HERE
 		if (finalPopulation.size() != this.getPopulationSize()) {
 			throw new IllegalStateException("Population not the correct size.");
 		}
 		return finalPopulation;
 	}
-
+	
+	
 	// Return the fittest individual in the population.
 	private MyDNA getBestIndividual (ArrayList<MyDNA> population)
 	{
@@ -279,7 +363,31 @@ public class MyLevelGenerator{
 	private MyDNA postProcess (MyDNA dna)
 	{
 		// YOUR CODE GOES BELOW HERE
-
+		for (int x = 0; x < 203; x++) {
+			String curr = dna.getChromosome().substring(x * 3, x * 3 + 3);
+			String next = dna.getChromosome().substring((x+1) * 3, (x+1) * 3 + 3);
+			if ((next.charAt(0) != 'z' || curr.charAt(0) == 'z') && next.charAt(0) - curr.charAt(0) > 5) {
+				dna.setChromosome(dna.getChromosome().substring(0, x*3) + curr + ((char) ((int) next.charAt(0) - 1)) + next.substring(1) + dna.getChromosome().substring((x+2)*3));
+			}
+			// if (curr.charAt(1) == '3') {
+			// 	char replace = dna.getChromosome().charAt(x*3+6);
+			// 	if (replace > 'a' && replace <= 'j' && replace - dna.getChromosome().charAt(x*3) > 2) {
+			// 		replace = (char) ((int) replace - 1);
+			// 		dna.setChromosome(dna.getChromosome().substring(0, x*3+6) + replace + dna.getChromosome().substring(x*3+7));
+			// 	}
+			// }
+		}
+		for (int x = 0; x < 200; x++) {
+			int toobig = 0;
+			for (int xx = x; xx < x + 4; xx++) {
+				if (dna.getChromosome().charAt(xx*3) == 'z') {
+					toobig++;
+				}
+				if (toobig == 4) {
+					dna.setChromosome(dna.getChromosome().substring(0, xx*3) + dna.getChromosome().substring((xx-5)*3, ((xx-5)*3) + 3) + dna.getChromosome().substring((xx+1)*3));
+				}
+			}
+		}
 		// YOUR CODE GOES ABOVE HERE
 		return dna;
 	}

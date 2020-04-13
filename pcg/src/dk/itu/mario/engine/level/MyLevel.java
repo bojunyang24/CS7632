@@ -49,12 +49,21 @@ public class MyLevel extends Level{
 		}
 
 		// Start your level at block index STARTOFFSET.
-		//// YOUR CODE GOES BELOW HERE ////
+        //// YOUR CODE GOES BELOW HERE ////
 
 		// For generating random numbers, DO NOT create a new random number generator.
 		// Use the provided generator, `random`, i.e.
-		// int randnum = random.nextInt(3);
-		
+        // int randnum = random.nextInt(3);
+        int i = 0;
+		for (int x = STARTOFFSET; x < width - EXITOFFSET; x++) {
+            String gene = dna.getChromosome().substring(i, i+3);
+            if (gene.charAt(0) != 'z') {
+                int floor = gene.charAt(0) - 94;
+                this.low(x, floor, gene.charAt(2));
+                this.high(x, floor, gene.charAt(1));
+            }
+            i = i + 3;
+        }
 		
 		//// YOUR CODE GOES ABOVE HERE ////
 
@@ -70,10 +79,56 @@ public class MyLevel extends Level{
 
 	}
 	
+    public void low(int x, int height, char stuff) {
+        // stuff: 0 -> enemy 1-> coin
+        if (height == 0) {
+            return;
+        }
+        for (int y = 0; y < height; y++) {
+            if (y == height - 1) {
+            setBlock(x, 15 - y, HILL_TOP);
+            } else {
+                setBlock(x, 15 - y, GROUND);
+            }
+        }
+        if (stuff == '5' && height > 1) {
+            setSpriteTemplate(x, 15 - height, new SpriteTemplate(Enemy.ENEMY_GOOMBA, false));
+            ENEMIES++;
+        }
+        if (stuff == '6') {
+            this.setBlock(x, 15 - height, COIN);
+            COINS++;
+        }
+    }
 
+    public void high(int x, int floor, char block) {
+        int y = floor + 4;
+        if (y < 15) {
+            y = 15 - y;
+        } else {
+            return;
+        }
+        switch (block) {
+            case '1':
+                this.setBlock(x, y, EMPTY);
+                // BLOCKS_EMPTY++;
+                break;
+            case '2':
+                this.setBlock(x, y, EMPTY);
+                break;
+            case '3':
+                this.setBlock(x, y, BLOCK_POWERUP);
+                BLOCKS_POWER++;
+                break;
+            case '4':
+                this.setBlock(x, y, COIN);
+                COINS ++;
+            default:
+                break;
+        }
+    }
 
 	/* BELOW HERE ARE EXAMPLE FUNCTIONS FOR HOW TO CREATE SOME INTERESTING STRUCTURES */
-
 
     //A built in function for helping to build a jump
     public int buildJump(int xo, int maxLength)
@@ -334,7 +389,6 @@ public class MyLevel extends Level{
         return length;
     }
 	
-
     //A built in function for building a straight path
     public int buildStraight(int xo, int maxLength, boolean safe, int difficulty)
     {
